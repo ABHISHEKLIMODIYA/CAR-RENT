@@ -1,0 +1,82 @@
+// Package: ManageTransactionBetweenCustomer
+
+package ManageTransactionBetweenCustomer;
+
+import CustomerAndUserDetails.Customer;
+
+// Interface for Payment
+public interface Payment {
+    void processPayment(double amount) throws PaymentFailedException;
+}
+
+// Abstract class for common transaction operations
+public abstract class Transaction {
+    protected double amount;
+    protected String paymentMethod;
+
+    public Transaction(double amount, String paymentMethod) {
+        this.amount = amount;
+        this.paymentMethod = paymentMethod;
+    }
+
+    // Abstract method for generating invoice
+    public abstract void generateInvoice();
+}
+
+// Custom exception for payment failures
+public class PaymentFailedException extends Exception {
+    public PaymentFailedException(String message) {
+        super(message);
+    }
+}
+
+// Concrete class implementing the interface and extending abstract class
+public class CustomerTransaction extends Transaction implements Payment {
+    private boolean transactionStatus;
+    private Customer customer;
+
+    public CustomerTransaction(double amount, String paymentMethod, Customer customer) {
+        super(amount, paymentMethod);
+        this.customer = customer;
+    }
+
+    @Override
+    public void processPayment(double extraAmount) throws PaymentFailedException {
+        // Using abstraction and polymorphism to handle different payment methods
+        transactionStatus = false;
+        switch (paymentMethod.toLowerCase()) {
+            case "credit":
+                System.out.println("Processing credit card payment...");
+                transactionStatus = true;
+                break;
+            case "debit":
+                System.out.println("Processing debit card payment...");
+                transactionStatus = true;
+                break;
+            case "wallet":
+                System.out.println("Processing digital wallet payment...");
+                transactionStatus = true;
+                break;
+            default:
+                throw new PaymentFailedException("Invalid payment method: " + paymentMethod);
+        }
+
+        if (transactionStatus) {
+            if (extraAmount > amount) {
+                double refund = extraAmount - amount;
+                System.out.println("Overpayment of " + refund + " detected. Adding to customer's wallet.");
+                customer.getWallet().addBalance(refund);
+            }
+        }
+    }
+
+    @Override
+    public void generateInvoice() {
+        if (transactionStatus) {
+            System.out.println("Transaction successful. Generating invoice...");
+            System.out.println("Amount: " + amount + " | Payment Method: " + paymentMethod);
+        } else {
+            System.out.println("Transaction failed. No invoice generated.");
+        }
+    }
+}
